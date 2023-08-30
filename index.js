@@ -1,14 +1,22 @@
 //Importing the Dependency
 const express = require("express");
-require("dotenv/config");
-const bodyParser = require("body-parser");
-const User = require("./models/user");
+const dotenv = require('dotenv');
+dotenv.config({path: './config.env'})
 const mongoose = require("mongoose");
-const authMiddleware = require("./middleware/authmiddleware");
-const authRoutes = require("./controllers/authtoken");
-const guestRoutes = require("./controllers/usercontroller");
+const morgan = require('morgan');
+const bodyParser = require("body-parser");
+
+const globalErrorHandler = require('./controllers/errorController');
+
+const authRoutes = require('./routes/authRoutes');
+const usersRoutes = require('./routes/userRoutes');
+
 const app = express();
+
 app.use(express.json());
+
+console.log(process.env.NODE_ENV);
+
 
 //Connection with the Mongo DB databasse
 mongoose
@@ -19,43 +27,78 @@ mongoose
   .catch((err) => {
     console.error("Error connecting to the database /n" + err);
   });
+
+
 //setting the Port number to 5000
 const Port = 5000;
 
 app.use(bodyParser.json());
-app.use("/register", async function (req, res) {
-  try {
-    const { username, password } = req.body;
-    const existingUser = await User.findOne({ username });
 
-    if (existingUser) {
-      return res.status(400).json({ error: "Username already exists" });
-    }
+// Development Logging
+if(process.env.NODE_ENV === 'development'){
+  app.use(morgan('dev'));
+}
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      username,
-      password: hashedPassword,
-      email: req.body,
-      mobilenumber: req.body,
-      first,
-    });
-    await newUser.save();
-
-    const token = jwt.sign({ userId: newUser._id }, "Cognizant", {
-      expiresIn: "1h",
-    });
-    res.status(201).json({ token });
-  } catch (error) {
-    res.status(500).json({ error: "Registration failed" });
-  }
+// Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', usersRoutes);
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //     status: "Failed",
+  //     message: `The url with ${req.originalUrl} doesn't exists on the server`
+  // })
+  // const err = new Error(`The url with ${req.originalUrl} doesn't exists on the server`);
+  // err.status = 'Failed';
+  // err.statusCode = 404;
+  const err = new CustomError(`The url with ${req.originalUrl} doesn't exists on the server`, 404);
+  next(err);
 });
 
-app.use("/guest", authMiddleware, guestRoutes);
-app.use("/auth", authRoutes);
-app.use("/protected", authMiddleware, (req, res) => {
-  res.json({ message: "You have access to this protected route" });
-});
+app.use(globalErrorHandler);
+
+
+
+
+
+
+
+
+
+
+
+// app.use("/register", async function (req, res) {
+//   try {
+//     const { username, password } = req.body;
+//     const existingUser = await User.findOne({ username });
+
+//     if (existingUser) {
+//       return res.status(400).json({ error: "Username already exists" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const newUser = new User({
+//       username,
+//       password: hashedPassword,
+//       email: req.body,
+//       mobilenumber: req.body,
+//       first,
+//     });
+//     await newUser.save();
+
+//     const token = jwt.sign({ userId: newUser._id }, "Cognizant", {
+//       expiresIn: "1h",
+//     });
+//     res.status(201).json({ token });
+//   } catch (error) {
+//     res.status(500).json({ error: "Registration failed" });
+//   }
+// });
+
+// app.use("/guest", authMiddleware, guestRoutes);
+// app.use("/auth", authRoutes);
+// app.use("/protected", authMiddleware, (req, res) => {
+//   res.json({ message: "You have access to this protected route" });
+// });
 
 // //Registering the user for the First Time and
 // app.post("/register", async (req, res) => {
@@ -81,6 +124,8 @@ app.use("/protected", authMiddleware, (req, res) => {
 // });
 
 //Listening to the Activities on that Port number
+
+
 app.listen(Port, () => {
   console.log("Listening to Shree always" + Port);
 });
