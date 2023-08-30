@@ -6,11 +6,10 @@ const mongoose = require("mongoose");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
 
-const User = require("./models/userModel");
 const globalErrorHandler = require('./controllers/errorController');
-const CutomError = require('./utils/CustomError');
 
 const authRoutes = require('./routes/authRoutes');
+const usersRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -41,7 +40,8 @@ if(process.env.NODE_ENV === 'development'){
 }
 
 // Routes
-app.use('/api/v1/users', authRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', usersRoutes);
 app.all('*', (req, res, next) => {
   // res.status(404).json({
   //     status: "Failed",

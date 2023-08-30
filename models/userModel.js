@@ -31,7 +31,8 @@ const userSchema = new schema({
     },
     password:{
         type:String,
-        required:[true,'Password is necessary']
+        required:[true,'Password is necessary'],
+        select: false
     },
     guests: [
         {
@@ -40,7 +41,7 @@ const userSchema = new schema({
                 default:'',
                 trim:true
             },
-            Name:{
+            name:{
                 type:String,
                 default:'',
                 trim:true
