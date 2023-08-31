@@ -5,7 +5,7 @@ dotenv.config({path: './config.env'})
 const mongoose = require("mongoose");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
-
+const cors=require("cors");
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/userRoutes');
 
@@ -38,6 +38,9 @@ if(process.env.NODE_ENV === 'development'){
 }
 
 // Routes
+app.use(cors({
+  origin: 'http://localhost:4200',
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
