@@ -6,8 +6,6 @@ const mongoose = require("mongoose");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
 
-const globalErrorHandler = require('./controllers/errorController');
-
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/userRoutes');
 
@@ -40,21 +38,26 @@ if(process.env.NODE_ENV === 'development'){
 }
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', usersRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
-  // res.status(404).json({
-  //     status: "Failed",
-  //     message: `The url with ${req.originalUrl} doesn't exists on the server`
-  // })
-  // const err = new Error(`The url with ${req.originalUrl} doesn't exists on the server`);
-  // err.status = 'Failed';
-  // err.statusCode = 404;
-  const err = new CustomError(`The url with ${req.originalUrl} doesn't exists on the server`, 404);
+  const err = new Error(`The url with ${req.originalUrl} doesn't exists on the server`);
+  err.status = 'failed';
+  err.statusCode = 404;
   next(err);
 });
 
-app.use(globalErrorHandler);
+app.use((error, req, res, next) => {
+  console.log('working Global error handler')
+  error.statusCode = error.statusCode || 500;
+  error.status = error.status || 'error';
+  res.status(error.statusCode).json({
+      status: error.statusCode,
+      message: error.message,
+  });
+})
+
+// app.use(globalErrorHandler);
 
 
 

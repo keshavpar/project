@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const util = require('util')
 const User = require('./../models/userModel');
-const asyncErrorHandler = require('./../utils/asyncErrorHandler');
-const CustomError = require('./../utils/CustomError');
 
 const signToken = id => {
     return jwt.sign({id}, process.env.SECRET_STR, {
@@ -36,76 +34,102 @@ const createSendToken = (user, statusCode, res) => {
     });
 }
 
-exports.signup = asyncErrorHandler(async (req, res, next) => {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    req.body.password = hashedPassword;
-    const newUser = await User.create(req.body);
+exports.signup = async (req, res, next) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        req.body.password = hashedPassword;
+        const newUser = await User.create(req.body);
+    
+        createSendToken(newUser, 201, res);
+    } catch (error) {
+        // Handle the error here or let it propagate to the global error handler
+        next(error);
+    }
+};
 
-    createSendToken(newUser, 201, res);
-});
-
-exports.login = asyncErrorHandler(async (req, res, next) => {
+exports.login = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
-
-    if(!email || !password) {
-        const error = new CustomError('Please provide email and passowrd to login!', 400);
+  
+    try {
+        if (!email || !password) {
+            const error = new Error('Please provide email and password to login!');
+            error.statusCode = 400;
+            error.status = 'failed';
+            throw error; // Throw the error to be caught by the global error handler
+        }
+    
+        const user = await User.findOne({ email }).select('+password');
+    
+        if (!user || !(await user.comparePasswordInDb(password, user.password))) {
+            const error = new Error('Incorrect email or password!');
+            error.statusCode = 400;
+            error.status = 'failed';
+            throw error; // Throw the error to be caught by the global error handler
+        }
+    
+        createSendToken(user, 200, res);
+    } catch (error) {
+        // Handle the error here or let it propagate to the global error handler
         next(error);
     }
+};
 
-    const user = await User.findOne({ email }).select('+password');;
+exports.protect = async (req, res, next) => {
+    try {
+        // Checking token from headers and cookies
+        let token;
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith('Bearer')
+        ) {
+            token = req.headers.authorization.split(' ')[1];
+        } else if (req.cookies.jwt) {
+            token = req.cookies.jwt;
+        }
 
-    if(!user || !(user.comparePasswordInDb(password, user.password))) {
-        const error = new CustomError('Incorrect email or password! ', 400)
+        // 1. Checking if token exists with headers
+        if (!token) {
+            const error = new Error('You are not logged in! :(');
+            error.statusCode = 401;
+            error.status = 'failed';
+            throw error; // Throw the error to be caught by the global error handler
+        }
+
+        // 2. Validating Token
+        const decodedToken = await util.promisify(jwt.verify)(token, process.env.SECRET_STR);
+
+        // 3. If the user exists (If the user logged in and after that user got deleted from records)
+        const user = await User.findById(decodedToken.id);
+
+        if (!user) {
+            const error = new Error('The user with the given token doesn\'t exist! :(');
+            error.statusCode = 401;
+            error.status = 'failed';
+            throw error; // Throw the error to be caught by the global error handler
+        }
+
+        // 4. If user changed the password after the token was issued, then must log in (Implement this check as needed)
+
+        // 5. Allow users to access the routes
+        req.user = user;
+        next();
+    } catch (error) {
+        // Handle the error here or let it propagate to the global error handler
         next(error);
     }
+};
 
-    createSendToken(user, 200, res);
-});
 
-exports.protect = asyncErrorHandler(async (req, res, next) => {
-    // Checking token from headers and cookies
-    let token;
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
-        token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.jwt) {
-        token = req.cookies.jwt;
-    }
-
-    // 1. Checking if token exists with headers
-    if(!token){
-        next(new CustomError('You are not logged in! :(', 401));
-    }
-
-    // 2. Validating Token
-    const decodedToken = await util.promisify(jwt.verify)(token, process.env.SECRET_STR);
-
-    // 3. If the user exists (If the user logedin and after that user get deleted from records)
-    const user = await User.findById(decodedToken.id);
-
-    if(!user){
-        const error = new CustomError('The user with the given token doesnt exists! :(', 401);
-        next(error);
-    }
-
-    // 4. If user changed the password after the token was issued, then must loggedin
-
-    // 5. Allow users to access the routes
-    req.user = user;
-    next();
-});
-
-exports.testing = asyncErrorHandler( async (req, res, next) => {
-    console.log('Auth Testing');
+exports.testing = async (req, res, next) => {
     res.status(200).json({
-
         status: 'success',
-        message: 'Check the cookies for the token!'
+        message: 'Check the cookies for the token!',
+        data: {
+            user: req.user.username
+        }
     });
-});
+};
 
 exports.logout = (req, res) => {
     res.cookie('jwt', 'loggedout', {

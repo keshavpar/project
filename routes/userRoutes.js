@@ -7,6 +7,9 @@ const router = express.Router();
 
 // Routes
 
+// Fetch all the guests of the user
+router.get('/guests/:userId', authController.protect, userController.guestList);
+
 // update-guests/23fhksfelk
 router.patch('/update-guests/:userId', authController.protect, userController.addGuests);
 
