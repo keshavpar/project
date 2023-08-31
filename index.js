@@ -5,6 +5,8 @@ dotenv.config({path: './config.env'})
 const mongoose = require("mongoose");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/userRoutes');
@@ -36,6 +38,11 @@ app.use(bodyParser.json());
 if(process.env.NODE_ENV === 'development'){
   app.use(morgan('dev'));
 }
+
+// Set Security HTTP Headers
+app.use(helmet());
+
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
