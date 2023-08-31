@@ -5,7 +5,7 @@ dotenv.config({path: './config.env'})
 const mongoose = require("mongoose");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
-
+const cors=require("cors");
 const globalErrorHandler = require('./controllers/errorController');
 
 const authRoutes = require('./routes/authRoutes');
@@ -40,8 +40,11 @@ if(process.env.NODE_ENV === 'development'){
 }
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', usersRoutes);
+app.use(cors({
+  origin: 'http://localhost:4200',
+}));
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
   // res.status(404).json({
   //     status: "Failed",
