@@ -34,35 +34,38 @@ const userSchema = new schema({
         required:[true,'Password is necessary'],
         select: false
     },
-    guests: [
-        {
-            Sno:{
-                type:String,
-                default:'',
-                trim:true
-            },
-            name:{
-                type:String,
-                default:'',
-                trim:true
-            },
-            email:{
-                type:String,
-                default:'',
-                trim:true
-            },
-            address:{
-                type:String,
-                default:'',
-                trim:true
-            },
-            phone:{
-                type:Number,
-                default:'',
-                trim:true
+    guests: {
+        type: [
+            {
+                Sno:{
+                    type:String,
+                    default:'',
+                    trim:true
+                },
+                name:{
+                    type:String,
+                    default:'',
+                    trim:true
+                },
+                email:{
+                    type:String,
+                    default:'',
+                    trim:true
+                },
+                address:{
+                    type:String,
+                    default:'',
+                    trim:true
+                },
+                phone:{
+                    type:Number,
+                    default:'',
+                    trim:true
+                }
             }
-        }
-    ]
+        ],
+        select: false
+    },
 })
 
 userSchema.methods.comparePasswordInDb = async function (pswd, pswdDb) {
