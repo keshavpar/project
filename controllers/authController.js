@@ -99,8 +99,9 @@ exports.protect = asyncErrorHandler(async (req, res, next) => {
 });
 
 exports.testing = asyncErrorHandler( async (req, res, next) => {
-    console.log('Sahi chal raha authentication :)');
+    console.log('Auth Testing');
     res.status(200).json({
+
         status: 'success',
         message: 'Check the cookies for the token!'
     });
