@@ -7,7 +7,6 @@ const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const cors=require('cors')
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/userRoutes');
 
@@ -32,7 +31,8 @@ mongoose
 //setting the Port number to 5000
 const Port = 5000;
 
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 // Development Logging
 if(process.env.NODE_ENV === 'development'){
@@ -51,9 +51,7 @@ app.use((req, res, next) => {
     //console.log(req.headers);
     next();
 })
-app.use(cors({
-  origin: 'http://localhost:4200',
-}));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
