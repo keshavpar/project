@@ -44,6 +44,14 @@ app.use(helmet());
 
 app.use(cookieParser());
 
+// Test Middleware
+app.use((req, res, next) => { 
+    req.requestedAt = new Date().toISOString();
+    console.log(req.cookies);
+    //console.log(req.headers);
+    next();
+})
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
