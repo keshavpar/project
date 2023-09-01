@@ -44,10 +44,6 @@ app.use(helmet());
 
 app.use(cookieParser());
 
-// Routes
-app.use(cors({
-  origin: 'http://localhost:4200',
-}));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
