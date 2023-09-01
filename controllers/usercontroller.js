@@ -7,7 +7,7 @@ exports.addGuests = async (req, res, next) => {
         console.log(req.body);
         const updatedUser = await User.findByIdAndUpdate(
             req.params.userId,
-            { $push: { guests: { $each: newGuests } } },
+            { $push: { guests: newGuests } },
             { new: true, select: "guests" }
         );
     
