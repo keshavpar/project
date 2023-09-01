@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 exports.addGuests = async (req, res, next) => {
     try {
         const newGuests = req.body.guests;
-    
+        console.log(req.body);
         const updatedUser = await User.findByIdAndUpdate(
             req.params.userId,
             { $push: { guests: { $each: newGuests } } },

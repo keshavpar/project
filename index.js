@@ -52,7 +52,6 @@ app.use((req, res, next) => {
     next();
 })
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
@@ -145,5 +144,5 @@ app.use((error, req, res, next) => {
 
 
 app.listen(Port, () => {
-  console.log("Listening to Shree always" + Port);
+  console.log("Listening to Port Number" + Port);
 });
