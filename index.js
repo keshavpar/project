@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-
+const cors=require('cors')
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/userRoutes');
 
@@ -51,7 +51,9 @@ app.use((req, res, next) => {
     //console.log(req.headers);
     next();
 })
-
+app.use(cors({
+  origin: 'http://localhost:4200',
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.all('*', (req, res, next) => {
