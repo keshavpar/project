@@ -3,22 +3,28 @@ const mongoose = require('mongoose');
 
 exports.addGuests = async (req, res, next) => {
     try {
-        const newGuests = req.body.guests;
+        console.log('Adding Guest');
         console.log(req.body);
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.userId,
-            { $push: { guests: newGuests } },
-            { new: true, select: "guests" }
-        );
-    
-        if (!updatedUser) {
-            // If User.findByIdAndUpdate returns null, it means the user with the given ID was not found.
+        const newGuest = req.body; // Assuming req.body.guests is the single guest object
+        const userId = req.params.userId;
+
+        // Find the user by ID
+        const user = await User.findById(userId).select('+guests');
+
+        if (!user) {
+            // If the user with the given ID was not found
             const error = new Error('User not found');
             error.statusCode = 404;
-            error.status = 'failed'
+            error.status = 'failed';
             throw error;
         }
-    
+
+        // Add the new guest to the user's guests array
+        user.guests.push(newGuest);
+
+        // Save the updated user document
+        const updatedUser = await user.save();
+
         res.status(200).json({
             status: 'success',
             data: {
@@ -29,6 +35,7 @@ exports.addGuests = async (req, res, next) => {
         // Handle the error here or let it propagate to the global error handler
         next(error);
     }
+
 };
   
 
