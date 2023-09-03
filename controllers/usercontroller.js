@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 
 exports.addGuests = async (req, res, next) => {
     try {
-        console.log('Adding Guest');
-        console.log(req.body);
         const newGuest = req.body; // Assuming req.body.guests is the single guest object
         const userId = req.params.userId;
 
