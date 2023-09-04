@@ -75,66 +75,13 @@ exports.login = async (req, res, next) => {
     }
 };
 
-exports.protect = async (req, res, next) => {
-    try {
-        // Checking token from headers and cookies
-        let token;
-        if (
-            req.headers.authorization &&
-            req.headers.authorization.startsWith('Bearer')
-        ) {
-            token = req.headers.authorization.split(' ')[1];
-        } else if (req.cookies.jwt) {
-            token = req.cookies.jwt;
-        }
-
-        // 1. Checking if token exists with headers
-        if (!token) {
-            const error = new Error('You are not logged in! :(');
-            error.statusCode = 401;
-            error.status = 'failed';
-            throw error; // Throw the error to be caught by the global error handler
-        }
-
-        // 2. Validating Token
-        const decodedToken = await util.promisify(jwt.verify)(token, process.env.SECRET_STR);
-
-        // 3. If the user exists (If the user logged in and after that user got deleted from records)
-        const user = await User.findById(decodedToken.id);
-
-        if (!user) {
-            const error = new Error('The user with the given token doesn\'t exist! :(');
-            error.statusCode = 401;
-            error.status = 'failed';
-            throw error; // Throw the error to be caught by the global error handler
-        }
-
-        // 4. If user changed the password after the token was issued, then must log in (Implement this check as needed)
-
-        // 5. Allow users to access the routes
-        req.user = user;
-        next();
-    } catch (error) {
-        // Handle the error here or let it propagate to the global error handler
-        next(error);
-    }
-};
-
-
-exports.testing = async (req, res, next) => {
-    res.status(200).json({
-        status: 'success',
-        message: 'Check the cookies for the token!',
-        data: {
-            user: req.user.username
-        }
-    });
-};
-
 exports.logout = (req, res) => {
     res.cookie('jwt', 'loggedout', {
       expires: new Date(Date.now() + 10 * 1000),
       httpOnly: true
     });
-    res.status(200).json({ status: 'success' });
+    res.status(200).json({ 
+        status: 'success',
+        token: "loggedout"
+    });
 };

@@ -8,16 +8,16 @@ const router = express.Router();
 // Routes
 
 // Fetch all the guests of the user
-router.get('/guests/:userId', userController.guestList);/* authController.protect, */
+router.get('/guests/:userId', userController.guestList);
 
 // update-guests/23fhksfelk
-router.patch('/update-guests/:userId', userController.addGuests); /* authController.protect */
+router.patch('/update-guests/:userId', userController.addGuests); 
 
 // update-guests/user/23fhksfelk/guest/98scjbkak
 router.
     route('/update-guests/user/:userId/guest/:guestId')
-    .delete(userController.deleteGuest) /* authController.protect */
-    .patch(userController.updateGuest); /* authController.protect */
+    .delete(userController.deleteGuest) 
+    .patch(userController.updateGuest); 
 
 
 module.exports = router;
